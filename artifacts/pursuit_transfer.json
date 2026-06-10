@@ -1,0 +1,61 @@
+{
+  "cold_start": {
+    "avg_capture_steps": 92.312,
+    "avg_role_switches": 0,
+    "success_rate": 1.0
+  },
+  "eval_episodes": 16,
+  "experiment": "two_pursuers_one_evader_organization_memory",
+  "improvement": {
+    "capture_step_reduction": 0.1605,
+    "success_rate_delta": 0.0
+  },
+  "maddpg_like_design": {
+    "centralized_training_signal": "joint positions of two pursuers and evader",
+    "decentralized_actor": "role-conditioned linear actor executed by each pursuer",
+    "stored_payload": "shared actor basis + two role adapters + formation trigger"
+  },
+  "memory_transfer": {
+    "avg_capture_steps": 77.5,
+    "avg_role_switches": 0,
+    "success_rate": 1.0
+  },
+  "organization_memory": {
+    "actor_basis": [
+      [
+        0.76,
+        0.24
+      ],
+      [
+        0.76,
+        0.24
+      ]
+    ],
+    "approach_gain": 0.78,
+    "flank_angle": 1.35,
+    "flank_radius": 0.2018,
+    "intercept_gain": 0.014,
+    "memory_id": "org-pursuit-flank-v1",
+    "role_adapters": [
+      1.0,
+      1.0
+    ],
+    "role_names": [
+      "left-flanker",
+      "right-flanker"
+    ],
+    "trigger_distance": 0.9
+  },
+  "shared_memory_transfer": {
+    "retrieval_score": 0.7998,
+    "retrieved_memory_id": "1058b3020c86",
+    "source_agent": "organization-miner",
+    "stored_memory_id": "1058b3020c86"
+  },
+  "storage": {
+    "compressed_org_memory_bytes": 76,
+    "raw_trajectory_bytes": 108192,
+    "storage_reduction": 0.9993
+  },
+  "training_episodes": 24
+}
