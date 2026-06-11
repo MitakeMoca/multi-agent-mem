@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Iterable
 
 from .vectors import cosine, embed_text, pack_vector, unpack_vector
+from .logging import log, DEBUG
 
+__all__ = ["MemoryRecord", "SharedMemory"]
 
 @dataclass
 class MemoryRecord:
@@ -23,8 +25,8 @@ class MemoryRecord:
     strategy: str
     score: float = 0.0
 
-    def to_dict(self) -> dict[str, object]:
-        return {
+    def to_dict(self, include_score: bool = False) -> dict[str, object]:
+        result = {
             "memory_id": self.memory_id,
             "source_agent": self.source_agent,
             "created_at": self.created_at,
@@ -33,8 +35,10 @@ class MemoryRecord:
             "tags": self.tags,
             "evidence": self.evidence,
             "strategy": self.strategy,
-            "score": round(self.score, 4),
         }
+        if include_score:
+            result["score"] = round(self.score, 4)
+        return result
 
 
 class SharedMemory:
@@ -62,6 +66,12 @@ class SharedMemory:
 
     def close(self) -> None:
         self.conn.close()
+
+    def __enter__(self) -> "SharedMemory":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
     def clear(self) -> None:
         self.conn.execute("DELETE FROM memories")
@@ -99,6 +109,7 @@ class SharedMemory:
             ),
         )
         self.conn.commit()
+        log(f"memory add: id={memory_id}, topic={topic}", DEBUG)
         return MemoryRecord(memory_id, source_agent, created_at, topic, summary, tags_list, evidence, strategy)
 
     def search(
@@ -119,7 +130,10 @@ class SharedMemory:
         records: list[MemoryRecord] = []
         query_lower = query.lower()
         for row in rows:
-            row_tags = json.loads(row[5])
+            try:
+                row_tags = json.loads(row[5])
+            except (json.JSONDecodeError, TypeError):
+                row_tags = []
             text_blob = " ".join([row[3], row[4], row[6], row[7], " ".join(row_tags)]).lower()
             semantic_score = cosine(query_vector, unpack_vector(row[8]))
             keyword_bonus = 0.12 if any(part in text_blob for part in query_lower.split()) else 0.0
@@ -140,7 +154,9 @@ class SharedMemory:
                     )
                 )
         records.sort(key=lambda r: r.score, reverse=True)
-        return records[:top_k]
+        result = records[:top_k]
+        log(f"memory search: query={query!r}, hits={len(result)}", DEBUG)
+        return result
 
     def count(self) -> int:
         row = self.conn.execute("SELECT COUNT(*) FROM memories").fetchone()

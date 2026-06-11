@@ -7,6 +7,8 @@ import struct
 
 
 DEFAULT_DIM = 64
+__all__ = ['DEFAULT_DIM', 'embed_text', 'cosine', 'pack_vector', 'unpack_vector', 'StatePacket']
+
 
 
 def _tokens(text: str) -> list[str]:

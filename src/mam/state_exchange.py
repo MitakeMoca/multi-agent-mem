@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .vectors import StatePacket
+__all__ = ['StateExchange']
+
 
 
 @dataclass
@@ -16,6 +18,8 @@ class StateExchange:
         return packet.byte_size
 
     def get(self, state_id: str) -> StatePacket:
+        if state_id not in self.packets:
+            raise LookupError(f"state_id not found: {state_id}")
         return self.packets[state_id]
 
     def count(self) -> int:

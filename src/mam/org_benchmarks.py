@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 import json
@@ -8,46 +8,13 @@ import statistics
 import tempfile
 from typing import Callable
 
+from .logging import log, INFO, DEBUG
+from .geom import Vec2, add, sub, mul, norm, unit, clamp, distance
 from .memory import SharedMemory
 from .organization import OrganizationMemoryModel, retrieve_organization_model, store_organization_model
 from .pursuit import run_pursuit_transfer_experiment
 
-
-Vec2 = tuple[float, float]
-
-
-def add(a: Vec2, b: Vec2) -> Vec2:
-    return (a[0] + b[0], a[1] + b[1])
-
-
-def sub(a: Vec2, b: Vec2) -> Vec2:
-    return (a[0] - b[0], a[1] - b[1])
-
-
-def mul(a: Vec2, scale: float) -> Vec2:
-    return (a[0] * scale, a[1] * scale)
-
-
-def norm(a: Vec2) -> float:
-    return math.hypot(a[0], a[1])
-
-
-def unit(a: Vec2) -> Vec2:
-    length = norm(a)
-    if length < 1e-9:
-        return (1.0, 0.0)
-    return (a[0] / length, a[1] / length)
-
-
-def clamp(a: Vec2, max_norm: float) -> Vec2:
-    length = norm(a)
-    if length <= max_norm or length < 1e-9:
-        return a
-    return mul(a, max_norm / length)
-
-
-def distance(a: Vec2, b: Vec2) -> float:
-    return norm(sub(a, b))
+__all__ = ["run_organization_benchmark_suite", "ScenarioSummary", "dumps_org_suite"]
 
 
 @dataclass
@@ -80,11 +47,16 @@ class ScenarioSummary:
         }
 
 
-def run_organization_benchmark_suite(eval_episodes: int = 16) -> dict[str, object]:
+def run_organization_benchmark_suite(
+    eval_episodes: int = 16,
+    pursuit_report: dict[str, object] | None = None,
+) -> dict[str, object]:
+    log(f"org suite start: eval_episodes={eval_episodes}", INFO)
     with tempfile.TemporaryDirectory(prefix="mam_org_suite_") as tmp:
         memory = SharedMemory(f"{tmp}/organization_suite.sqlite")
+        log("running 3 scenarios...", DEBUG)
         summaries = [
-            _run_pursuit(memory, eval_episodes),
+            _run_pursuit(memory, eval_episodes, pursuit_report),
             _run_navigation(memory, eval_episodes),
             _run_relay(memory, eval_episodes),
         ]
@@ -92,6 +64,7 @@ def run_organization_benchmark_suite(eval_episodes: int = 16) -> dict[str, objec
         memory.close()
 
     scenario_dicts = [item.to_dict() for item in summaries]
+    log(f"org suite done: {len(scenario_dicts)} scenarios", INFO)
     return {
         "suite": "mpe_style_organization_memory_suite",
         "scenario_count": len(scenario_dicts),
@@ -107,8 +80,9 @@ def run_organization_benchmark_suite(eval_episodes: int = 16) -> dict[str, objec
     }
 
 
-def _run_pursuit(memory: SharedMemory, eval_episodes: int) -> ScenarioSummary:
-    report = run_pursuit_transfer_experiment(eval_episodes=eval_episodes)
+def _run_pursuit(memory: SharedMemory, eval_episodes: int, pre_report=None) -> ScenarioSummary:
+    log("  running pursuit scenario...", DEBUG)
+    report = pre_report if pre_report is not None else run_pursuit_transfer_experiment(eval_episodes=eval_episodes)
     model = OrganizationMemoryModel(
         memory_id="org-suite-pursuit-flank",
         scenario="pursuit_flank",
@@ -135,6 +109,7 @@ def _run_pursuit(memory: SharedMemory, eval_episodes: int) -> ScenarioSummary:
 
 
 def _run_navigation(memory: SharedMemory, eval_episodes: int) -> ScenarioSummary:
+    log("  running navigation scenario...", DEBUG)
     model = OrganizationMemoryModel(
         memory_id="org-suite-navigation-roles",
         scenario="cooperative_navigation",
@@ -216,6 +191,7 @@ def _navigation_memory_policy(model: OrganizationMemoryModel) -> Callable[[list[
 
 
 def _run_relay(memory: SharedMemory, eval_episodes: int) -> ScenarioSummary:
+    log("  running relay scenario...", DEBUG)
     model = OrganizationMemoryModel(
         memory_id="org-suite-relay-transport",
         scenario="relay_transport",

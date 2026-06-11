@@ -10,15 +10,22 @@ from .org_benchmarks import run_organization_benchmark_suite
 from .protocol import Metrics
 from .pursuit import run_pursuit_transfer_experiment
 from .runtime import MultiAgentRuntime
+from .logging import log, INFO, DEBUG
+
+__all__ = ["run_benchmark", "_sum_metrics", "_improvement", "_compare"]
 
 
 def run_benchmark(rounds: int, output_path: str | Path | None = None) -> dict[str, Any]:
+    log(f"benchmark start: rounds={rounds}", INFO)
     tasks = build_tasks(rounds)
+    log(f"tasks built: {len(tasks)} tasks", DEBUG)
     with tempfile.TemporaryDirectory(prefix="mam_benchmark_") as tmp:
         text_runtime = MultiAgentRuntime(Path(tmp) / "text.sqlite", "text")
         structured_runtime = MultiAgentRuntime(Path(tmp) / "structured.sqlite", "structured")
         try:
+            log("running text mode...", INFO)
             text_results = [text_runtime.run_task(task) for task in tasks]
+            log("running structured mode...", INFO)
             structured_results = [structured_runtime.run_task(task) for task in tasks]
         finally:
             text_runtime.close()
@@ -27,8 +34,10 @@ def run_benchmark(rounds: int, output_path: str | Path | None = None) -> dict[st
     text_total = _sum_metrics(text_results)
     structured_total = _sum_metrics(structured_results)
     comparison = _compare(text_total, structured_total)
+    log("running pursuit transfer...", INFO)
     pursuit_report = run_pursuit_transfer_experiment()
-    organization_suite = run_organization_benchmark_suite()
+    log("running org benchmark suite...", INFO)
+    organization_suite = run_organization_benchmark_suite(pursuit_report=pursuit_report)
     report = {
         "rounds": len(tasks),
         "task_groups": sorted(set(task.group for task in tasks)),
@@ -53,6 +62,8 @@ def run_benchmark(rounds: int, output_path: str | Path | None = None) -> dict[st
         out = Path(output_path)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+        log(f"report written to {out}", INFO)
+    log(f"benchmark done: char_saving={comparison['char_saving_rate']:.2%}, token_saving={comparison['token_saving_rate']:.2%}", INFO)
     return report
 
 

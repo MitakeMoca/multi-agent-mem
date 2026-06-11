@@ -8,50 +8,11 @@ import statistics
 import tempfile
 from typing import Iterable
 
+__all__ = ["PursuitState", "PursuitMetrics", "OrganizationMemory", "organization_memory_from_dict", "store_organization_memory", "retrieve_organization_memory", "PursuitEnvironment", "PursuitPolicy", "ColdStartPolicy", "OrganizationMemoryPolicy", "train_organization_memory", "raw_trajectory_bytes", "run_pursuit_transfer_experiment", "dumps_pursuit_report"]
+
+from .geom import Vec2, add, sub, mul, unit, clamp as clamp_vec, distance, rotate
+from .logging import log, INFO, DEBUG
 from .memory import MemoryRecord, SharedMemory
-
-
-Vec2 = tuple[float, float]
-
-
-def add(a: Vec2, b: Vec2) -> Vec2:
-    return (a[0] + b[0], a[1] + b[1])
-
-
-def sub(a: Vec2, b: Vec2) -> Vec2:
-    return (a[0] - b[0], a[1] - b[1])
-
-
-def mul(a: Vec2, scale: float) -> Vec2:
-    return (a[0] * scale, a[1] * scale)
-
-
-def norm(a: Vec2) -> float:
-    return math.hypot(a[0], a[1])
-
-
-def unit(a: Vec2) -> Vec2:
-    length = norm(a)
-    if length < 1e-9:
-        return (1.0, 0.0)
-    return (a[0] / length, a[1] / length)
-
-
-def clamp_vec(a: Vec2, max_norm: float) -> Vec2:
-    length = norm(a)
-    if length <= max_norm or length < 1e-9:
-        return a
-    return mul(a, max_norm / length)
-
-
-def rotate(a: Vec2, radians: float) -> Vec2:
-    c = math.cos(radians)
-    s = math.sin(radians)
-    return (a[0] * c - a[1] * s, a[0] * s + a[1] * c)
-
-
-def distance(a: Vec2, b: Vec2) -> float:
-    return norm(sub(a, b))
 
 
 @dataclass
@@ -325,12 +286,15 @@ def raw_trajectory_bytes(states: Iterable[PursuitState]) -> int:
 
 
 def run_pursuit_transfer_experiment(eval_episodes: int = 16) -> dict[str, object]:
+    log(f"pursuit experiment start: training=24 episodes, eval={eval_episodes}", INFO)
     memory, training_states = train_organization_memory()
+    log(f"training done: {len(training_states)} states, memory={memory.memory_id}", DEBUG)
     with tempfile.TemporaryDirectory(prefix="mam_pursuit_memory_") as tmp:
         shared_memory = SharedMemory(f"{tmp}/organization.sqlite")
         stored_record = store_organization_memory(shared_memory, memory)
         transferred_memory, retrieved_record = retrieve_organization_memory(shared_memory)
         shared_memory.close()
+    log(f"memory stored and retrieved: id={stored_record.memory_id}", DEBUG)
     env = PursuitEnvironment(seed=29)
     cold = ColdStartPolicy()
     transfer = OrganizationMemoryPolicy(transferred_memory)
@@ -348,6 +312,7 @@ def run_pursuit_transfer_experiment(eval_episodes: int = 16) -> dict[str, object
     transfer_steps = statistics.mean(item.capture_steps for item in transfer_results)
     raw_bytes = raw_trajectory_bytes(training_states)
     compressed_bytes = memory.compressed_bytes()
+    log(f"pursuit experiment done: cold_success={cold_success:.2%}, transfer_success={transfer_success:.2%}, cold_steps={cold_steps:.1f}, transfer_steps={transfer_steps:.1f}", INFO)
     return {
         "experiment": "two_pursuers_one_evader_organization_memory",
         "training_episodes": 24,

@@ -9,6 +9,9 @@ from .agents import PlannerAgent, RetrieverAgent, SummarizerAgent, Task, ToolAge
 from .memory import SharedMemory
 from .protocol import Metrics, ProtocolMessage, TextMessage, parse_text_payload
 from .state_exchange import StateExchange
+from .logging import log, DEBUG
+
+__all__ = ["MultiAgentRuntime"]
 
 
 class MultiAgentRuntime:
@@ -23,9 +26,16 @@ class MultiAgentRuntime:
         self.tool = ToolAgent()
         self.summarizer = SummarizerAgent()
         self.agents = [self.planner, self.retriever, self.tool, self.summarizer]
+        log(f"runtime init: mode={mode}", DEBUG)
 
     def close(self) -> None:
         self.memory.close()
+
+    def __enter__(self) -> "MultiAgentRuntime":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
     def _record_text_wire(self, metrics: Metrics, wire: str) -> None:
         metrics.record_text(wire)
@@ -204,6 +214,7 @@ class MultiAgentRuntime:
             )
 
         metrics.elapsed_ms = (time.perf_counter() - started) * 1000
+        log(f"task {task.task_id} done: mode={self.mode}, chars={metrics.to_dict()['text_chars']}, elapsed={metrics.elapsed_ms:.1f}ms", DEBUG)
         return {
             "task": task.__dict__,
             "mode": self.mode,
