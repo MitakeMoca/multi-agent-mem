@@ -1,15 +1,8 @@
 """Multi-Agent Memory prototype."""
 
 __all__ = [
-    "agents",
-    "benchmark",
-    "memory",
-    "org_benchmarks",
-    "organization",
-    "official_mpe",
-    "protocol",
-    "pursuit",
-    "runtime",
-    "state_exchange",
-    "vectors",
+    "agents", "benchmark", "geom", "logging",
+    "memory", "org_benchmarks", "official_mpe",
+    "organization", "protocol", "pursuit",
+    "runtime", "state_exchange", "vectors",
 ]
