@@ -1,82 +1,121 @@
 # 实验报告
 
-## 实验环境
+## 摘要
 
-- 服务器路径：`/data2/wqx/multi_agent_low_overhead`
-- 环境目录：`/data2/wqx/conda_envs/malow`
-- Python：3.10.20
-- GPU：通过 `CUDA_VISIBLE_DEVICES=2` 指定 2 号 GPU
-- 真实模型：Qwen3-8B，路径 `/home/omnisky/.cache/modelscope/hub/models/Qwen/Qwen3-8B`
+本项目提出一种面向规模化多智能体协作的低开销通信、非文本状态传递与**组织记忆模型**。不同于只保存任务摘要的普通共享记忆，本系统将多 Agent 协作轨迹压缩为角色分工、协作拓扑、触发条件、共享 actor 基和角色 adapter，并将其作为可检索、可迁移、可执行的组织记忆存入共享记忆库。最新版本进一步补充轻量记忆生命周期和动态链接字段，使普通任务记忆与组织记忆都能记录类型、版本、状态、复用热度、父记忆和链接关系。实验包含通信 benchmark、官方 `mpe2.simple_spread_v3` benchmark 和自包含 MPE-style 多场景组织记忆 suite。通信实验中，结构化模式将文本字符开销从 81366 降至 29598，估算 token 从 20383 降至 7425。官方 MPE 中组织记忆策略相对随机策略平均奖励提升 25.30%；自包含 suite 覆盖追捕围堵、协同导航覆盖和接力运输三个场景，平均任务步数降低 46.33%，平均存储压缩率 99.89%。
 
-## 运行命令
+## 1. 问题定义
 
-```bash
-cd /data2/wqx/multi_agent_low_overhead
-CUDA_VISIBLE_DEVICES=2 /data2/wqx/conda_envs/malow/bin/python scripts/run_experiment.py --rounds 10 --out results/server_run_gpu2_adaptive_memory
-CUDA_VISIBLE_DEVICES=2 /home/omnisky/anaconda3/bin/python scripts/run_llm_experiment.py --model_path /home/omnisky/.cache/modelscope/hub/models/Qwen/Qwen3-8B --rounds 2 --out results/llm_qwen3_gpu2
-```
+多 Agent 系统如果完全依赖自然语言传递中间结果，会产生通信冗余、状态反复文本化和经验难复用三个问题。更关键的是，普通共享记忆通常只保存“某次任务做了什么”的摘要，而没有保存“多个 Agent 如何形成稳定分工”的组织结构。对于围堵、覆盖、运输等任务，真正可迁移的经验不是日志，而是角色分配、协作拓扑、队形关系和触发条件。
 
-## 任务设计
+本实验因此关注三个层次的系统机制。第一，结构化通信和非文本状态包能否降低 Agent 间协作开销。第二，组织记忆能否作为当前多智能体模型中的可迁移协作先验，在多个 benchmark 风格任务中减少新 Agent 的探索成本和记忆存储开销。第三，记忆是否能从普通 top-k 检索进一步走向可审计管理，即记录复用次数、最近命中时间、父子关系和动态链接，而不是只保存一段不可演化的文本。
 
-实验包含 10 轮连续任务，覆盖五组相关场景：
+## 2. 方法
 
-- openEuler 软件源镜像优化与复用
-- 国产数据库索引调优与复用
-- WPS 文档批处理转换与复用
-- TongWeb 中间件日志诊断与复用
-- 国产基础软件安全基线检查与复用
+系统采用统一组织记忆模型表示多 Agent 协作先验。每条组织记忆包含场景族、角色列表、协作拓扑、触发条件、共享 actor 基、角色 adapter 和场景 payload。训练或归纳阶段，系统可以使用联合状态和完整轨迹抽取该组织结构；迁移阶段，新 Agent 只通过共享记忆检索得到压缩组织记忆，并在分散 actor 中执行自己的角色策略。
 
-## 新增创新点：置信门控自适应记忆
+该设计是 MADDPG-like 的轻量化系统实现。完整 MADDPG 通常采用集中 critic 和分散 actor；本项目保留其关键思想：组织记忆抽取时可使用全局协作轨迹，执行时每个 Agent 只使用局部角色 adapter 和共享 actor 基。这样既能体现集中训练/分散执行，又避免在作业环境中引入重型深度强化学习依赖。
 
-原系统已经支持关键词、标签、语义向量三阶段渐进式读取。本轮进一步加入置信门控：每个阶段结束后计算记忆置信度，如果当前命中已经足够可靠，就提前停止后续读取。系统会记录：
+通用多 Agent benchmark 仍用于验证赛题要求中的低开销通信和状态传递。Planner 生成计划和状态包，Retriever 检索证据和历史记忆，Tool 执行指标计算，Summarizer 生成结论并写入共享记忆。结构化模式通过 `action`、`params`、`result`、`capability` 和 `state_ref` 传递协作信息，避免每一步重复传递长文本上下文。
 
-- `adaptive_early_stops`：触发早停的任务次数。
-- `adaptive_stage_skips`：因为早停而跳过的读取阶段数。
-- `avg_memory_confidence`：平均记忆置信度。
-- `adaptive_skip_rate`：跳过阶段占全部计划读取阶段的比例。
+记忆模块使用 SQLite 存储。每条 `MemoryRecord` 除摘要、证据、策略和向量外，还包含 `memory_type`、`version`、`status`、`use_count`、`last_hit_at`、`confidence`、`parent_memory_id`、`linked_memory_ids`、`link_type` 和 `evolution_reason`。检索命中后系统会更新 `use_count` 与 `last_hit_at`；当 Summarizer 基于历史记忆生成新记忆时，新记忆会把被复用的记忆写入父节点和链接列表。该实现是轻量级的生命周期管理，不引入额外外部依赖。
 
-这样可以把“Agent 根据自身需要读取文档”从概念变成可审计、可量化的行为。
+## 3. Benchmark 设置
 
-## 前沿论文方法对比
+### 3.1 通信与状态传递 Benchmark
 
-本项目的设计与近年多 Agent 和记忆型 Agent 研究有直接对应关系。
+通信实验包含两组关联连续任务，每组 5 轮，共 10 轮。
 
-- CAMEL、MetaGPT、AutoGen 和 AgentVerse 说明，多 Agent 系统通常需要明确角色分工、通信协议和协作流程。本文采用 Planner、Retriever、Executor、Summarizer 四类 Agent，并用 `ProtocolMessage` 固化动作、参数、结果和能力描述，重点解决自然语言长上下文通信开销大的问题。
-- Generative Agents、Reflexion、Voyager 和 CoALA 说明，Agent 需要长期记忆、反思经验、技能库和结构化动作空间。本文把任务摘要、证据链、收益计算和复用历史写入 `SharedMemory`，并用 `VectorState` 承载中间语义状态。
-- MemGPT、Mem0、A-MEM、MemOS 和 MIRIX 说明，前沿记忆机制正在从普通 RAG 检索转向分层记忆、图记忆、生命周期管理和分类型记忆池。本文当前实现的是轻量可复现版本：关键词、标签、语义三阶段读取，加上置信门控和 `stage_audit`；同时已经为 `MemoryUnit` 增加 `memory_type`、`version`、`status`、`use_count`、`last_hit_at`、`parent_memory_id` 和 `linked_memory_ids` 等轻量元数据。后续可以把这些字段扩展成完整记忆图谱、记忆版本管理和 procedural / episodic / semantic 等分类型检索策略。
-- AgentBench 和 AI Agents That Matter 强调 Agent 评测不应只看任务成功率，还要看成本、复现性和评估设置。本文因此同时统计通信字符数、状态字节数、端到端估计耗时、Precision@K、Recall@K、MRR、NDCG、阶段跳过率和平均记忆置信度。
+| 任务组 | 轮数 | 目标 |
+| --- | ---: | --- |
+| `protocol-memory` | 5 | 验证结构化协议、能力发现和共享记忆复用 |
+| `state-codeact` | 5 | 验证非文本状态传递、状态交换和 CodeAct 扩展点 |
 
-因此，本项目吸收前沿工作的方式不是直接复刻某一个系统，而是把其中最适合课程原型落地的部分抽象为“低开销协议 + 可评估记忆 + 可审计读取决策”。
+对比模式如下：
 
-## 最新实验结果
+| 模式 | 描述 |
+| --- | --- |
+| 纯文本协作模式 | Agent 使用自然语言长上下文传递任务、能力、证据和历史记忆，并执行确定性长文本解析 |
+| 结构化协议协作模式 | Agent 使用结构化消息、状态包引用和共享记忆 ID 传递协作信息 |
 
-最新服务器结果以 `results/server_run_gpu2_adaptive_memory/metrics.json` 为准。
+### 3.2 官方 MPE Benchmark
 
-| 指标 | 纯文本协作 | 结构化协议协作 |
-| --- | ---: | ---: |
-| 连续任务轮数 | 10 | 10 |
-| Agent 消息数 | 50 | 50 |
-| 文本通信字符开销 | 11736 | 5127 |
-| 非文本状态传递次数 | 0 | 50 |
-| 非文本状态数据规模 | 0 B | 12800 B |
-| 共享记忆命中率 | 90.00% | 90.00% |
-| 记忆 Precision@K | 50.00% | 50.00% |
-| 记忆 Recall@K | 100.00% | 100.00% |
-| 记忆 MRR | 0.933 | 0.933 |
-| 记忆 NDCG | 0.950 | 0.950 |
-| 实际读取阶段数 | 26 | 26 |
-| 自适应早停次数 | 4 | 4 |
-| 跳过读取阶段数 | 4 | 4 |
-| 平均记忆置信度 | 0.504 | 0.502 |
-| 阶段跳过率 | 13.33% | 13.33% |
-| 估计端到端处理耗时 | 181.673 ms | 49.553 ms |
+服务器已安装 `mpe2` 并运行官方 `simple_spread_v3`。该环境用于验证组织记忆在真实多智能体 benchmark 中是否能作为角色分配先验。对比方法为随机策略和组织记忆策略：组织记忆策略把三名 Agent 映射到左、中、右 landmark，并根据局部观测执行离散移动。
 
-结构化协议模式相比纯文本模式减少文本通信字符开销 56.31%，估计端到端处理耗时减少 72.72%。新增的置信门控自适应记忆在不降低 Recall@K、MRR 和 NDCG 的前提下，触发早停 4 次，跳过 4 个读取阶段。
+### 3.3 MPE-style 组织记忆 Benchmark Suite
 
-当前代码还补充了轻量记忆生命周期和动态链接字段。`memory_type` 表示记忆类型，`version` 和 `status` 表示生命周期状态，`use_count` 和 `last_hit_at` 记录复用热度，`parent_memory_id` 和 `linked_memory_ids` 记录记忆之间的复用链路。这部分用于支撑报告中对 A-MEM、MemOS 和 MIRIX 的方法吸收。
+组织记忆 suite 包含三个场景，每个场景 16 个评测 episode。
 
-Qwen3-8B 真实模型实验在 2 号 GPU 上完成 2 轮任务，第二轮复用任务命中 `os` 组记忆，Precision@K、Recall@K、MRR 和 NDCG 均为 100.00%。真实模型轨迹中已经包含 `memory_audit`，Planner 可以看到记忆置信度和阶段决策。
+| 场景 | 任务形式 | 冷启动基线 | 组织记忆迁移 |
+| --- | --- | --- | --- |
+| `pursuit_flank` | 两个追捕者围堵一个逃逸者 | 两个追捕者都直接追逐目标 | 迁移左右夹击分工和队形参数 |
+| `cooperative_navigation` | 三个 Agent 覆盖三个 landmark | 每个 Agent 追最近 landmark，易重复覆盖 | 迁移按位置排序的覆盖角色 |
+| `relay_transport` | 三个 Agent 协作运输载荷 | 所有 Agent 缺少稳定支撑队形 | 迁移前导侦察者和左右搬运者三角队形 |
 
-## 结论
+评测指标包括任务成功率或得分、平均完成步数、组织记忆检索分数、原始轨迹存储规模、压缩组织记忆存储规模、生命周期字段命中数和动态链接字段命中数。
 
-结构化协议能显著减少 Agent 间长文本传递，`VectorState` 可作为中间语义状态直接交换，共享记忆能够在连续任务中复用历史经验。新增的置信门控自适应记忆进一步说明，Agent 不必固定读满所有阶段，而是可以在证据足够时停止读取，从而提升记忆机制的可解释性和工程可控性。
+## 4. 实验结果
+
+### 4.1 通信与状态传递结果
+
+| 指标 | 纯文本模式 | 结构化模式 | 改进 |
+| --- | ---: | ---: | ---: |
+| 消息次数 | 90 | 90 | 0 |
+| 文本字符开销 | 81366 | 29598 | 63.62% 节省 |
+| 估算 token 开销 | 20383 | 7425 | 63.57% 节省 |
+| 非文本状态传递次数 | 0 | 10 | +10 |
+| 非文本状态总规模 | 0 bytes | 2560 bytes | 可直接传递 |
+| 记忆查询次数 | 20 | 20 | 相同 |
+| 记忆命中查询数 | 12 | 12 | 相同 |
+| 记忆命中率 | 60.00% | 60.00% | 相同 |
+| 生命周期字段命中数 | 由最新 `benchmark.json` 输出 | 由最新 `benchmark.json` 输出 | 用于审计记忆复用热度 |
+| 动态链接字段命中数 | 由最新 `benchmark.json` 输出 | 由最新 `benchmark.json` 输出 | 用于审计复用链路 |
+
+结构化模式的主要收益来自减少重复上下文展开。两种模式执行相同数量的 Agent 消息，但纯文本模式在每一步都携带任务、能力、记忆和证据的长文本说明，并需要下游 Agent 将长文本重新解析成可执行线索；结构化模式只传递动作、参数、结果和状态引用。
+
+### 4.2 多场景组织记忆结果
+
+| 场景 | 冷启动步数 | 组织记忆迁移步数 | 步数降低 | 原始轨迹存储 | 压缩组织记忆 | 存储压缩 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `pursuit_flank` | 92.312 | 77.500 | 16.05% | 108192 bytes | 84 bytes | 99.92% |
+| `cooperative_navigation` | 100.000 | 13.062 | 86.94% | 94068 bytes | 106 bytes | 99.89% |
+| `relay_transport` | 70.688 | 45.250 | 35.99% | 81620 bytes | 110 bytes | 99.87% |
+| **平均/总计** | - | - | **46.33%** | 283880 bytes | 300 bytes | **99.89%** |
+
+结果说明组织记忆不是某个围堵 toy case 的技巧。追捕围堵验证了角色夹击分工，协同导航验证了覆盖角色和拓扑分配，接力运输验证了队形支撑和角色 adapter。三个场景都使用同一套组织记忆模型、SQLite 存储和检索流程，说明该概念可以放入当前多 Agent 系统模型中作为通用协作先验。
+
+### 4.3 官方 MPE 结果
+
+| 环境 | 基线策略平均奖励 | 组织记忆策略平均奖励 | 奖励提升 |
+| --- | ---: | ---: | ---: |
+| `mpe2.simple_spread_v3` | -75.7970 | -56.6232 | 25.30% |
+
+官方 MPE 实验提供了真实 benchmark 证据。虽然该适配器仍是轻量策略而非完整神经网络训练，但它证明组织记忆可以放入标准多 Agent 环境接口中：组织记忆先提供角色分配，Agent 再基于局部观测执行动作。
+
+## 5. 前沿方法对比与创新性分析
+
+多 Agent 框架类工作说明了角色分工和通信协议的重要性。CAMEL、MetaGPT、AutoGen 和 AgentVerse 都强调多 Agent 系统需要明确角色、交互协议和任务流程，否则系统容易退化成长上下文转发。本项目与这些工作一致地采用 Planner、Retriever、Tool、Summarizer 分工，但核心差异是把通信成本作为主要评测对象：系统同时保留纯文本模式和结构化协议模式，并统计字符、token、状态字节和耗时。
+
+长期记忆型 Agent 工作说明了经验沉淀的必要性。Generative Agents 通过记忆流、反思和规划维持长期行为一致性；Reflexion 将失败反馈写入语言记忆；Voyager 把可复用技能沉淀为技能库；CoALA 将 Agent 行为拆成记忆、动作空间和决策过程。本项目吸收这些思想，但把记忆对象从单 Agent 经验扩展为多 Agent 协作结构：共享记忆不仅保存“任务怎么做”，还保存“多个 Agent 怎么分工配合”。
+
+近期记忆系统进一步从普通 RAG 检索转向可管理、可演化的记忆资源。MemGPT 从操作系统角度管理不同层级记忆，Mem0 关注长期记忆抽取与检索的延迟和 token 成本，A-MEM 强调动态链接和演化记忆，MemOS 将记忆视为可表示、调度、版本化和演化的系统资源，MIRIX 将记忆划分为 Core、Episodic、Semantic、Procedural、Resource 和 Knowledge Vault 等类型。当前实现对应吸收了其中三个可落地部分：用 `memory_type` 表示分类型记忆池雏形，用 `version/status/use_count/last_hit_at/confidence` 表示生命周期，用 `parent_memory_id/linked_memory_ids/link_type/evolution_reason` 表示动态链接。
+
+评测方法类工作提醒我们，Agent 系统不能只报告成功率。AgentBench 和 AI Agents That Matter 都强调评测应同时关注能力、成本、复现性和实验设置。本项目因此同时报告通信开销、状态传递规模、记忆命中率、任务步数、存储压缩率、生命周期命中和动态链接命中。这样可以把“记忆更强”拆成可检查的工程指标，而不是只给出主观案例。
+
+综上，本系统的创新点在于把共享记忆从“信息复用”提升到“组织模式复用”，并把前沿记忆系统中的生命周期和动态链接思想压缩成可复现的标准库实现。普通 RAG 或 Agent memory 主要复用事实、摘要或工具调用历史；本系统复用的是多智能体之间形成的角色结构和协作拓扑。新 Agent 不需要从零探索“谁负责哪里、谁和谁配合、什么时候切换策略”，而是直接检索并执行已有组织模式。
+
+## 6. 局限性
+
+当前官方 MPE 只覆盖 `simple_spread_v3`，自包含 suite 用于补充围堵和运输等组织结构；严格的完整实验还可以继续接入更多 PettingZoo/MPE2 环境。当前 actor 是可解释低维策略，不是完整神经网络 MADDPG。记忆生命周期和动态链接目前是轻量元数据层，还没有实现自动遗忘、错误记忆降权或图结构可视化。后续可以把 `OrganizationMemoryModel` 的 actor_basis 和 role_adapters 替换为真实策略网络低秩参数，并把链接字段扩展成可查询的记忆图谱。
+
+## 7. 结论
+
+实验表明，结构化协作协议和非文本状态包可以显著降低多 Agent 通信开销；组织记忆模型进一步证明，共享记忆可以保存和复用多智能体分工模式，而不只是保存文本摘要。官方 `mpe2.simple_spread_v3` 中组织记忆策略相对随机策略奖励提升 25.30%；三个 MPE-style 场景中，组织记忆迁移平均降低 46.33% 任务步数，并将 283880 bytes 的轨迹级经验压缩为 300 bytes 的组织记忆。新增生命周期和动态链接字段进一步增强了记忆机制的可审计性，为后续对齐 A-MEM、MemOS 和 MIRIX 等前沿记忆系统提供了实现基础。
+
+## 8. 自审清单
+
+- 贡献是否明确：是，核心贡献是组织记忆模型、MPE-style 多场景 suite、MADDPG-like 压缩策略存储，以及轻量记忆生命周期/动态链接。
+- 写作是否清晰：是，方法按通信协议、状态包、组织记忆模型、生命周期元数据和多场景 benchmark 组织。
+- 实验是否支持结论：通信节省由 `benchmark.json` 支持，官方 benchmark 由 `official_mpe.json` 支持，迁移加速和压缩率由 `org_benchmark_suite.json` 支持。
+- 评价是否完整：已有纯文本基线、结构化模式、冷启动策略、组织记忆迁移对比和记忆审计指标；官方 PettingZoo/MPE 可作为后续增强。
+- 方法是否稳健：当前实现无外部依赖，适合评审复现；真实连续控制泛化能力和自动记忆治理仍需更复杂环境验证。

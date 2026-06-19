@@ -7,3 +7,4 @@ __pycache__/
 results/local_*/
 results/docx_render/
 results/demo.mp4
+artifacts/local_*.json

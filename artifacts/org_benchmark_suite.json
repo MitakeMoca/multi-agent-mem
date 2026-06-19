@@ -1,0 +1,53 @@
+{
+  "aggregate": {
+    "avg_step_reduction": 0.4633,
+    "avg_storage_reduction": 0.9989,
+    "min_transfer_score": 1.0,
+    "total_compressed_bytes": 300,
+    "total_raw_bytes": 283880
+  },
+  "scenario_count": 3,
+  "scenarios": [
+    {
+      "cold_score": 1.0,
+      "cold_steps": 92.312,
+      "compressed_bytes": 84,
+      "raw_bytes": 108192,
+      "retrieval_score": 0.7697,
+      "retrieved_memory_id": "c4e1a35a2e37",
+      "scenario": "pursuit_flank",
+      "step_reduction": 0.1605,
+      "storage_reduction": 0.9992,
+      "transfer_score": 1.0,
+      "transfer_steps": 77.5
+    },
+    {
+      "cold_score": 0.0,
+      "cold_steps": 100,
+      "compressed_bytes": 106,
+      "raw_bytes": 94068,
+      "retrieval_score": 0.6819,
+      "retrieved_memory_id": "16a4da386f16",
+      "scenario": "cooperative_navigation",
+      "step_reduction": 0.8694,
+      "storage_reduction": 0.9989,
+      "transfer_score": 1.0,
+      "transfer_steps": 13.062
+    },
+    {
+      "cold_score": 1.0,
+      "cold_steps": 70.688,
+      "compressed_bytes": 110,
+      "raw_bytes": 81620,
+      "retrieval_score": 0.7503,
+      "retrieved_memory_id": "b8456b958492",
+      "scenario": "relay_transport",
+      "step_reduction": 0.3599,
+      "storage_reduction": 0.9987,
+      "transfer_score": 1.0,
+      "transfer_steps": 45.25
+    }
+  ],
+  "shared_memory_records": 3,
+  "suite": "mpe_style_organization_memory_suite"
+}

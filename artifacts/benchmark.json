@@ -1,0 +1,1062 @@
+{
+  "rounds": 10,
+  "task_groups": [
+    "protocol-memory",
+    "state-codeact"
+  ],
+  "requirements_covered": {
+    "agents": [
+      "planner",
+      "retriever",
+      "tool",
+      "summarizer"
+    ],
+    "structured_protocol": true,
+    "text_baseline": true,
+    "non_text_state_transfer": true,
+    "shared_memory": true,
+    "related_task_groups": 2,
+    "continuous_rounds": 10
+  },
+  "text_total": {
+    "message_count": 90,
+    "text_chars": 99042,
+    "estimated_tokens": 24802,
+    "state_transfers": 0,
+    "state_bytes": 0,
+    "memory_queries": 20,
+    "memory_hits": 23,
+    "memory_hit_queries": 12,
+    "lifecycle_memory_hits": 23,
+    "linked_memory_hits": 11,
+    "memory_hit_rate": 0.6,
+    "memory_avg_hits_per_query": 1.15,
+    "elapsed_ms": 59.532
+  },
+  "structured_total": {
+    "message_count": 90,
+    "text_chars": 29598,
+    "estimated_tokens": 7425,
+    "state_transfers": 10,
+    "state_bytes": 2560,
+    "memory_queries": 20,
+    "memory_hits": 23,
+    "memory_hit_queries": 12,
+    "lifecycle_memory_hits": 23,
+    "linked_memory_hits": 11,
+    "memory_hit_rate": 0.6,
+    "memory_avg_hits_per_query": 1.15,
+    "elapsed_ms": 35.004
+  },
+  "comparison": {
+    "char_saving_rate": 0.7012,
+    "token_saving_rate": 0.7006,
+    "latency_saving_rate": 0.412,
+    "memory_hit_rate_delta": 0.0,
+    "state_transfer_bytes": 2560,
+    "lifecycle_memory_hits": 23,
+    "linked_memory_hits": 11
+  },
+  "pursuit_transfer": {
+    "experiment": "two_pursuers_one_evader_organization_memory",
+    "training_episodes": 24,
+    "eval_episodes": 16,
+    "organization_memory": {
+      "memory_id": "org-pursuit-flank-v1",
+      "role_names": [
+        "left-flanker",
+        "right-flanker"
+      ],
+      "flank_radius": 0.2018,
+      "flank_angle": 1.35,
+      "approach_gain": 0.78,
+      "intercept_gain": 0.014,
+      "actor_basis": [
+        [
+          0.76,
+          0.24
+        ],
+        [
+          0.76,
+          0.24
+        ]
+      ],
+      "role_adapters": [
+        1.0,
+        1.0
+      ],
+      "trigger_distance": 0.9
+    },
+    "shared_memory_transfer": {
+      "stored_memory_id": "680ab24311c8",
+      "retrieved_memory_id": "680ab24311c8",
+      "retrieval_score": 0.7998,
+      "source_agent": "organization-miner"
+    },
+    "cold_start": {
+      "success_rate": 1.0,
+      "avg_capture_steps": 92.312,
+      "avg_role_switches": 0
+    },
+    "memory_transfer": {
+      "success_rate": 1.0,
+      "avg_capture_steps": 77.5,
+      "avg_role_switches": 0
+    },
+    "improvement": {
+      "success_rate_delta": 0.0,
+      "capture_step_reduction": 0.1605
+    },
+    "storage": {
+      "raw_trajectory_bytes": 108192,
+      "compressed_org_memory_bytes": 76,
+      "storage_reduction": 0.9993
+    },
+    "maddpg_like_design": {
+      "centralized_training_signal": "joint positions of two pursuers and evader",
+      "decentralized_actor": "role-conditioned linear actor executed by each pursuer",
+      "stored_payload": "shared actor basis + two role adapters + formation trigger"
+    }
+  },
+  "organization_benchmark_suite": {
+    "suite": "mpe_style_organization_memory_suite",
+    "scenario_count": 3,
+    "shared_memory_records": 3,
+    "scenarios": [
+      {
+        "scenario": "pursuit_flank",
+        "cold_score": 1.0,
+        "transfer_score": 1.0,
+        "cold_steps": 92.312,
+        "transfer_steps": 77.5,
+        "step_reduction": 0.1605,
+        "raw_bytes": 108192,
+        "compressed_bytes": 84,
+        "storage_reduction": 0.9992,
+        "retrieved_memory_id": "4a11d977284d",
+        "retrieval_score": 0.7697
+      },
+      {
+        "scenario": "cooperative_navigation",
+        "cold_score": 0.0,
+        "transfer_score": 1.0,
+        "cold_steps": 100,
+        "transfer_steps": 13.062,
+        "step_reduction": 0.8694,
+        "raw_bytes": 94068,
+        "compressed_bytes": 106,
+        "storage_reduction": 0.9989,
+        "retrieved_memory_id": "9af3c1cfcf7b",
+        "retrieval_score": 0.6819
+      },
+      {
+        "scenario": "relay_transport",
+        "cold_score": 1.0,
+        "transfer_score": 1.0,
+        "cold_steps": 70.688,
+        "transfer_steps": 45.25,
+        "step_reduction": 0.3599,
+        "raw_bytes": 81620,
+        "compressed_bytes": 110,
+        "storage_reduction": 0.9987,
+        "retrieved_memory_id": "de25a18ded3e",
+        "retrieval_score": 0.7503
+      }
+    ],
+    "aggregate": {
+      "avg_step_reduction": 0.4633,
+      "avg_storage_reduction": 0.9989,
+      "min_transfer_score": 1.0,
+      "total_raw_bytes": 283880,
+      "total_compressed_bytes": 300
+    }
+  },
+  "structured_task_results": [
+    {
+      "task": {
+        "task_id": "A1",
+        "group": "protocol-memory",
+        "topic": "结构化协议压缩",
+        "request": "设计低开销 Agent 协议并比较纯文本通信开销",
+        "tags": [
+          "protocol",
+          "overhead"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "A1",
+        "topic": "结构化协议压缩",
+        "summary": "结构化协议压缩: 采用4步协作流程，命中0条历史记忆，证据包括结构化协议减少重复上下文、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [],
+        "new_memory_id": "7f8acbe79650",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2908,
+        "estimated_tokens": 729,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 2.509
+      }
+    },
+    {
+      "task": {
+        "task_id": "A2",
+        "group": "protocol-memory",
+        "topic": "能力发现与协议映射",
+        "request": "复用前序协议经验，补充握手和能力发现机制",
+        "tags": [
+          "protocol",
+          "memory"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "A2",
+        "topic": "能力发现与协议映射",
+        "summary": "能力发现与协议映射: 采用5步协作流程，命中1条历史记忆，证据包括SQLite 适合作业级共享记忆原型、结构化协议减少重复上下文。",
+        "reused_memory_ids": [
+          "7f8acbe79650"
+        ],
+        "new_memory_id": "725a87c45c13",
+        "tool_result": {
+          "estimated_latency_ms": 154.145,
+          "reuse_gain": 0.08,
+          "confidence": 0.79,
+          "evidence_count": 3,
+          "memory_reuse_count": 1
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2956,
+        "estimated_tokens": 741,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 2,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 2,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 1.0,
+        "elapsed_ms": 3.791
+      }
+    },
+    {
+      "task": {
+        "task_id": "A3",
+        "group": "protocol-memory",
+        "topic": "共享记忆元数据",
+        "request": "设计记忆单元字段并支持跨 Agent 复用",
+        "tags": [
+          "memory",
+          "sqlite"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "A3",
+        "topic": "共享记忆元数据",
+        "summary": "共享记忆元数据: 采用4步协作流程，命中0条历史记忆，证据包括SQLite 适合作业级共享记忆原型、共享内存适合低延迟状态交换。",
+        "reused_memory_ids": [],
+        "new_memory_id": "329a24ba5bbf",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2912,
+        "estimated_tokens": 731,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 2.657
+      }
+    },
+    {
+      "task": {
+        "task_id": "A4",
+        "group": "protocol-memory",
+        "topic": "记忆命中率评估",
+        "request": "复用协议与记忆设计，统计连续任务命中率",
+        "tags": [
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "A4",
+        "topic": "记忆命中率评估",
+        "summary": "记忆命中率评估: 采用4步协作流程，命中0条历史记忆，证据包括多 Agent 协作需要同时统计通信、状态和记忆指标、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [],
+        "new_memory_id": "ed9a090d9b1a",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2928,
+        "estimated_tokens": 735,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 2.563
+      }
+    },
+    {
+      "task": {
+        "task_id": "A5",
+        "group": "protocol-memory",
+        "topic": "协议模式最终总结",
+        "request": "综合前序任务生成系统层机制结论",
+        "tags": [
+          "protocol",
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "A5",
+        "topic": "协议模式最终总结",
+        "summary": "协议模式最终总结: 采用5步协作流程，命中2条历史记忆，证据包括SQLite 适合作业级共享记忆原型、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [
+          "7f8acbe79650",
+          "329a24ba5bbf"
+        ],
+        "new_memory_id": "336b121acbc8",
+        "tool_result": {
+          "estimated_latency_ms": 140.741,
+          "reuse_gain": 0.16,
+          "confidence": 0.807,
+          "evidence_count": 3,
+          "memory_reuse_count": 2
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2994,
+        "estimated_tokens": 751,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 4,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 4,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.0,
+        "elapsed_ms": 3.972
+      }
+    },
+    {
+      "task": {
+        "task_id": "B1",
+        "group": "state-codeact",
+        "topic": "非文本状态传递",
+        "request": "设计 embedding 状态包在 Agent 间的直接传递机制",
+        "tags": [
+          "state",
+          "embedding"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "B1",
+        "topic": "非文本状态传递",
+        "summary": "非文本状态传递: 采用5步协作流程，命中3条历史记忆，证据包括共享内存适合低延迟状态交换、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [
+          "336b121acbc8",
+          "725a87c45c13",
+          "7f8acbe79650"
+        ],
+        "new_memory_id": "6f7370351c88",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2983,
+        "estimated_tokens": 748,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 4,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 4.492
+      }
+    },
+    {
+      "task": {
+        "task_id": "B2",
+        "group": "state-codeact",
+        "topic": "共享内存交换优化",
+        "request": "复用状态包经验，比较共享内存和文本编码路径",
+        "tags": [
+          "state",
+          "shared-memory"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "B2",
+        "topic": "共享内存交换优化",
+        "summary": "共享内存交换优化: 采用5步协作流程，命中1条历史记忆，证据包括共享内存适合低延迟状态交换、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [
+          "6f7370351c88"
+        ],
+        "new_memory_id": "38738c253e6a",
+        "tool_result": {
+          "estimated_latency_ms": 154.145,
+          "reuse_gain": 0.08,
+          "confidence": 0.79,
+          "evidence_count": 3,
+          "memory_reuse_count": 1
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2960,
+        "estimated_tokens": 743,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 2,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 2,
+        "linked_memory_hits": 2,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 1.0,
+        "elapsed_ms": 3.78
+      }
+    },
+    {
+      "task": {
+        "task_id": "B3",
+        "group": "state-codeact",
+        "topic": "CodeAct 沙箱接口",
+        "request": "设计轻量沙箱执行 Python 代码并回传结构化结果",
+        "tags": [
+          "codeact",
+          "sandbox",
+          "tool"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "B3",
+        "topic": "CodeAct 沙箱接口",
+        "summary": "CodeAct 沙箱接口: 采用4步协作流程，命中0条历史记忆，证据包括CodeAct 可通过轻量沙箱隔离执行、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [],
+        "new_memory_id": "9c54f2acd8c6",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2949,
+        "estimated_tokens": 740,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 2.704
+      }
+    },
+    {
+      "task": {
+        "task_id": "B4",
+        "group": "state-codeact",
+        "topic": "状态传递评测",
+        "request": "统计状态包传递次数、规模和任务时延",
+        "tags": [
+          "state",
+          "benchmark"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "B4",
+        "topic": "状态传递评测",
+        "summary": "状态传递评测: 采用5步协作流程，命中3条历史记忆，证据包括SQLite 适合作业级共享记忆原型、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [
+          "6f7370351c88",
+          "ed9a090d9b1a",
+          "38738c253e6a"
+        ],
+        "new_memory_id": "b3960bfe26d1",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 2995,
+        "estimated_tokens": 752,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 3,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 4.368
+      }
+    },
+    {
+      "task": {
+        "task_id": "B5",
+        "group": "state-codeact",
+        "topic": "连续任务综合验证",
+        "request": "复用两组历史记忆，生成完整实验结论",
+        "tags": [
+          "state",
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "structured",
+      "summary": {
+        "task_id": "B5",
+        "topic": "连续任务综合验证",
+        "summary": "连续任务综合验证: 采用5步协作流程，命中3条历史记忆，证据包括SQLite 适合作业级共享记忆原型、哈希向量提供可复现的语义近似。",
+        "reused_memory_ids": [
+          "725a87c45c13",
+          "329a24ba5bbf",
+          "ed9a090d9b1a"
+        ],
+        "new_memory_id": "17af19993376",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 3013,
+        "estimated_tokens": 755,
+        "state_transfers": 1,
+        "state_bytes": 256,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 2,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 4.168
+      }
+    }
+  ],
+  "text_task_results": [
+    {
+      "task": {
+        "task_id": "A1",
+        "group": "protocol-memory",
+        "topic": "结构化协议压缩",
+        "request": "设计低开销 Agent 协议并比较纯文本通信开销",
+        "tags": [
+          "protocol",
+          "overhead"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "A1",
+        "topic": "结构化协议压缩",
+        "summary": "结构化协议压缩: 采用4步协作流程，命中0条历史记忆，证据包括结构化协议减少重复上下文、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [],
+        "new_memory_id": "299206e61089",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 5378,
+        "estimated_tokens": 1349,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 4.008
+      }
+    },
+    {
+      "task": {
+        "task_id": "A2",
+        "group": "protocol-memory",
+        "topic": "能力发现与协议映射",
+        "request": "复用前序协议经验，补充握手和能力发现机制",
+        "tags": [
+          "protocol",
+          "memory"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "A2",
+        "topic": "能力发现与协议映射",
+        "summary": "能力发现与协议映射: 采用5步协作流程，命中1条历史记忆，证据包括SQLite 适合作业级共享记忆原型、结构化协议减少重复上下文。",
+        "reused_memory_ids": [
+          "299206e61089"
+        ],
+        "new_memory_id": "4d1a6de641eb",
+        "tool_result": {
+          "estimated_latency_ms": 154.145,
+          "reuse_gain": 0.08,
+          "confidence": 0.79,
+          "evidence_count": 3,
+          "memory_reuse_count": 1
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 9076,
+        "estimated_tokens": 2274,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 2,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 2,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 1.0,
+        "elapsed_ms": 6.65
+      }
+    },
+    {
+      "task": {
+        "task_id": "A3",
+        "group": "protocol-memory",
+        "topic": "共享记忆元数据",
+        "request": "设计记忆单元字段并支持跨 Agent 复用",
+        "tags": [
+          "memory",
+          "sqlite"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "A3",
+        "topic": "共享记忆元数据",
+        "summary": "共享记忆元数据: 采用4步协作流程，命中0条历史记忆，证据包括SQLite 适合作业级共享记忆原型、共享内存适合低延迟状态交换。",
+        "reused_memory_ids": [],
+        "new_memory_id": "1e7abf87c4eb",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 5386,
+        "estimated_tokens": 1350,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 3.775
+      }
+    },
+    {
+      "task": {
+        "task_id": "A4",
+        "group": "protocol-memory",
+        "topic": "记忆命中率评估",
+        "request": "复用协议与记忆设计，统计连续任务命中率",
+        "tags": [
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "A4",
+        "topic": "记忆命中率评估",
+        "summary": "记忆命中率评估: 采用4步协作流程，命中0条历史记忆，证据包括多 Agent 协作需要同时统计通信、状态和记忆指标、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [],
+        "new_memory_id": "ac35b795bfb4",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 5393,
+        "estimated_tokens": 1353,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 3.923
+      }
+    },
+    {
+      "task": {
+        "task_id": "A5",
+        "group": "protocol-memory",
+        "topic": "协议模式最终总结",
+        "request": "综合前序任务生成系统层机制结论",
+        "tags": [
+          "protocol",
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "A5",
+        "topic": "协议模式最终总结",
+        "summary": "协议模式最终总结: 采用5步协作流程，命中2条历史记忆，证据包括SQLite 适合作业级共享记忆原型、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [
+          "299206e61089",
+          "1e7abf87c4eb"
+        ],
+        "new_memory_id": "b1b391f1587f",
+        "tool_result": {
+          "estimated_latency_ms": 140.741,
+          "reuse_gain": 0.16,
+          "confidence": 0.807,
+          "evidence_count": 3,
+          "memory_reuse_count": 2
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 12690,
+        "estimated_tokens": 3177,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 4,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 4,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.0,
+        "elapsed_ms": 6.586
+      }
+    },
+    {
+      "task": {
+        "task_id": "B1",
+        "group": "state-codeact",
+        "topic": "非文本状态传递",
+        "request": "设计 embedding 状态包在 Agent 间的直接传递机制",
+        "tags": [
+          "state",
+          "embedding"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "B1",
+        "topic": "非文本状态传递",
+        "summary": "非文本状态传递: 采用5步协作流程，命中3条历史记忆，证据包括共享内存适合低延迟状态交换、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [
+          "b1b391f1587f",
+          "4d1a6de641eb",
+          "299206e61089"
+        ],
+        "new_memory_id": "8729cae0728c",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 15638,
+        "estimated_tokens": 3914,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 4,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 7.874
+      }
+    },
+    {
+      "task": {
+        "task_id": "B2",
+        "group": "state-codeact",
+        "topic": "共享内存交换优化",
+        "request": "复用状态包经验，比较共享内存和文本编码路径",
+        "tags": [
+          "state",
+          "shared-memory"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "B2",
+        "topic": "共享内存交换优化",
+        "summary": "共享内存交换优化: 采用5步协作流程，命中1条历史记忆，证据包括共享内存适合低延迟状态交换、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [
+          "8729cae0728c"
+        ],
+        "new_memory_id": "fa85f77e5dcc",
+        "tool_result": {
+          "estimated_latency_ms": 154.145,
+          "reuse_gain": 0.08,
+          "confidence": 0.79,
+          "evidence_count": 3,
+          "memory_reuse_count": 1
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 9430,
+        "estimated_tokens": 2361,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 2,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 2,
+        "linked_memory_hits": 2,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 1.0,
+        "elapsed_ms": 6.565
+      }
+    },
+    {
+      "task": {
+        "task_id": "B3",
+        "group": "state-codeact",
+        "topic": "CodeAct 沙箱接口",
+        "request": "设计轻量沙箱执行 Python 代码并回传结构化结果",
+        "tags": [
+          "codeact",
+          "sandbox",
+          "tool"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "B3",
+        "topic": "CodeAct 沙箱接口",
+        "summary": "CodeAct 沙箱接口: 采用4步协作流程，命中0条历史记忆，证据包括CodeAct 可通过轻量沙箱隔离执行、SQLite 适合作业级共享记忆原型。",
+        "reused_memory_ids": [],
+        "new_memory_id": "ee3591337ed8",
+        "tool_result": {
+          "estimated_latency_ms": 165.0,
+          "reuse_gain": 0.0,
+          "confidence": 0.773,
+          "evidence_count": 3,
+          "memory_reuse_count": 0
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 5473,
+        "estimated_tokens": 1372,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 0,
+        "memory_hit_queries": 0,
+        "lifecycle_memory_hits": 0,
+        "linked_memory_hits": 0,
+        "memory_hit_rate": 0.0,
+        "memory_avg_hits_per_query": 0.0,
+        "elapsed_ms": 3.899
+      }
+    },
+    {
+      "task": {
+        "task_id": "B4",
+        "group": "state-codeact",
+        "topic": "状态传递评测",
+        "request": "统计状态包传递次数、规模和任务时延",
+        "tags": [
+          "state",
+          "benchmark"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "B4",
+        "topic": "状态传递评测",
+        "summary": "状态传递评测: 采用5步协作流程，命中3条历史记忆，证据包括SQLite 适合作业级共享记忆原型、多 Agent 协作需要同时统计通信、状态和记忆指标。",
+        "reused_memory_ids": [
+          "8729cae0728c",
+          "ac35b795bfb4",
+          "fa85f77e5dcc"
+        ],
+        "new_memory_id": "59a0cd6698d3",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 15456,
+        "estimated_tokens": 3868,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 3,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 8.627
+      }
+    },
+    {
+      "task": {
+        "task_id": "B5",
+        "group": "state-codeact",
+        "topic": "连续任务综合验证",
+        "request": "复用两组历史记忆，生成完整实验结论",
+        "tags": [
+          "state",
+          "memory",
+          "benchmark"
+        ]
+      },
+      "mode": "text",
+      "summary": {
+        "task_id": "B5",
+        "topic": "连续任务综合验证",
+        "summary": "连续任务综合验证: 采用5步协作流程，命中3条历史记忆，证据包括SQLite 适合作业级共享记忆原型、哈希向量提供可复现的语义近似。",
+        "reused_memory_ids": [
+          "4d1a6de641eb",
+          "1e7abf87c4eb",
+          "ac35b795bfb4"
+        ],
+        "new_memory_id": "af0baa3dcac3",
+        "tool_result": {
+          "estimated_latency_ms": 127.337,
+          "reuse_gain": 0.24,
+          "confidence": 0.823,
+          "evidence_count": 3,
+          "memory_reuse_count": 3
+        }
+      },
+      "metrics": {
+        "message_count": 9,
+        "text_chars": 15122,
+        "estimated_tokens": 3784,
+        "state_transfers": 0,
+        "state_bytes": 0,
+        "memory_queries": 2,
+        "memory_hits": 5,
+        "memory_hit_queries": 2,
+        "lifecycle_memory_hits": 5,
+        "linked_memory_hits": 2,
+        "memory_hit_rate": 1.0,
+        "memory_avg_hits_per_query": 2.5,
+        "elapsed_ms": 7.625
+      }
+    }
+  ]
+}

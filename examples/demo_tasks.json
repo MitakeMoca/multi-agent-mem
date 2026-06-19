@@ -1,0 +1,16 @@
+[
+  {
+    "task_id": "A1",
+    "group": "protocol-memory",
+    "topic": "结构化协议压缩",
+    "request": "设计低开销 Agent 协议并比较纯文本通信开销",
+    "tags": ["protocol", "overhead"]
+  },
+  {
+    "task_id": "B1",
+    "group": "state-codeact",
+    "topic": "非文本状态传递",
+    "request": "设计 embedding 状态包在 Agent 间的直接传递机制",
+    "tags": ["state", "embedding"]
+  }
+]

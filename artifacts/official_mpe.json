@@ -1,0 +1,77 @@
+{
+  "backend": "mpe2",
+  "environment": "simple_spread_v3",
+  "episodes": 4,
+  "improvement": {
+    "relative_reward_improvement": 0.253,
+    "reward_delta": 19.1738
+  },
+  "max_cycles": 25,
+  "organization_memory_policy": {
+    "compressed_bytes": 106,
+    "mean_reward": -56.6232,
+    "memory": {
+      "actor_basis": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "coordination_graph": [
+        [
+          "left-landmark-cover",
+          "center-landmark-cover"
+        ],
+        [
+          "center-landmark-cover",
+          "right-landmark-cover"
+        ]
+      ],
+      "memory_id": "official-mpe-simple-spread-role-prior",
+      "payload": {
+        "backend": "mpe2",
+        "official_env": "simple_spread_v3"
+      },
+      "role_adapters": [
+        [
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "roles": [
+        "left-landmark-cover",
+        "center-landmark-cover",
+        "right-landmark-cover"
+      ],
+      "scenario": "official_simple_spread",
+      "trigger": {
+        "max_cycles": 25.0,
+        "target_tolerance": 0.05
+      }
+    },
+    "rewards": [
+      -48.5491,
+      -75.014,
+      -63.3158,
+      -39.6139
+    ]
+  },
+  "random_policy": {
+    "mean_reward": -75.797,
+    "rewards": [
+      -88.4422,
+      -74.6555,
+      -77.2979,
+      -62.7925
+    ]
+  },
+  "status": "ok",
+  "suite": "official_mpe"
+}
